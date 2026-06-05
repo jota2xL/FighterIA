@@ -68,7 +68,7 @@ class LeadCreate(BaseModel):
     status: str            = Field(default="new",
                                    pattern="^(new|contacted|qualified|converted|lost)$")
     source: Optional[str]  = Field(
-        None, pattern="^(organic|referral|paid_ad|event|direct)$")
+        None, pattern="^(manual|web|referral|social|ads)$")
     notes:  Optional[str]  = None
 
 
