@@ -17,6 +17,7 @@ from app.config import settings
 from app.database import engine, Base
 from app.utils.storage import init_storage_dirs
 from app.routers import auth, users, disciplines, analysis, dashboard, gamification, instructor
+from app.routers import crm, blockchain, nlp
 
 # ── Create tables ─────────────────────────────────────────────────────────
 Base.metadata.create_all(bind=engine)
@@ -52,6 +53,9 @@ app.include_router(analysis.router)
 app.include_router(dashboard.router)
 app.include_router(gamification.router)
 app.include_router(instructor.router)
+app.include_router(crm.router)
+app.include_router(blockchain.router)
+app.include_router(nlp.router)
 
 
 # ── Startup seed ─────────────────────────────────────────────────────────

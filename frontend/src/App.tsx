@@ -17,6 +17,10 @@ import InstructorPanelPage from "@/pages/InstructorPanelPage";
 import InstructorGroupPage from "@/pages/InstructorGroupPage";
 import InstructorStudentPage from "@/pages/InstructorStudentPage";
 import NotFoundPage from "@/pages/NotFoundPage";
+import GymManagementPage from "@/pages/GymManagementPage";
+import LeadPipelinePage from "@/pages/LeadPipelinePage";
+import BusinessDashboardPage from "@/pages/BusinessDashboardPage";
+import CertificatePage from "@/pages/CertificatePage";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
@@ -55,6 +59,10 @@ const App = () => (
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/badges" element={<BadgesPage />} />
         <Route path="/instructor" element={<InstructorPanelPage />} />
+        <Route path="/gyms" element={<GymManagementPage />} />
+        <Route path="/gyms/:gymId/leads" element={<LeadPipelinePage />} />
+        <Route path="/gyms/:gymId/dashboard" element={<BusinessDashboardPage />} />
+        <Route path="/certificates/:hash" element={<CertificatePage />} />
       </Route>
 
       {/* Instructor-only */}

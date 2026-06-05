@@ -23,6 +23,7 @@ const NAV_LINKS = [
   { to: "/analysis/new", label: "Nuevo Análisis" },
   { to: "/history", label: "Historial" },
   { to: "/badges", label: "Logros" },
+  { to: "/gyms", label: "Gimnasios" },
 ];
 
 const Navbar = () => {

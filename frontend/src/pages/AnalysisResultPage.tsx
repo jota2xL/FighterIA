@@ -6,10 +6,12 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAnalysis } from "@/hooks/useAnalysis";
 import { analysisService } from "@/services/analysis.service";
+import { nlpService } from "@/services/nlp.service";
 import VideoPlayer from "@/components/analysis/VideoPlayer";
 import ScoreDisplay from "@/components/analysis/ScoreDisplay";
 import JointResultsTable from "@/components/analysis/JointResultsTable";
 import FeedbackList from "@/components/analysis/FeedbackList";
+import Card, { CardHeader } from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import Button from "@/components/ui/Button";
@@ -24,6 +26,30 @@ const AnalysisResultPage = () => {
   const analysisId = Number(id);
   const { data, isLoading, isError, refetch } = useAnalysis(analysisId);
   const xpToastShown = React.useRef(false);
+
+  // NLP Feedback state
+  const [nlpFeedback, setNlpFeedback] = React.useState<string | null>(null);
+  const [nlpLoading, setNlpLoading] = React.useState(false);
+  const [nlpError, setNlpError] = React.useState<string | null>(null);
+
+  const handleGenerateNlpFeedback = async () => {
+    if (!data || data.status !== "completed") return;
+    setNlpLoading(true);
+    setNlpError(null);
+    try {
+      const result = await nlpService.getNlpFeedback({
+        potencia: data.power_score ?? 0,
+        equilibrio: data.balance_score ?? 0,
+        alineacion: data.alignment_score ?? 0,
+        velocidad: data.speed_score ?? 0,
+      });
+      setNlpFeedback(result.feedback);
+    } catch {
+      setNlpError("Error al generar el feedback con IA. Inténtalo de nuevo.");
+    } finally {
+      setNlpLoading(false);
+    }
+  };
 
   React.useEffect(() => {
     if (data?.xp_awarded && data.xp_awarded > 0 && !xpToastShown.current) {
@@ -122,6 +148,61 @@ const AnalysisResultPage = () => {
               <FeedbackList feedback={data.feedback} />
             </section>
           )}
+
+          {/* NLP Enriched Feedback */}
+          <section>
+            <h2 className="mb-3 font-display text-xl font-bold text-text-primary">
+              Feedback IA Enriquecido
+            </h2>
+            {!nlpFeedback && !nlpLoading && (
+              <Card>
+                <div className="flex flex-col items-center gap-4 py-4 text-center">
+                  <p className="text-sm text-text-secondary">
+                    Genera un análisis detallado con lenguaje natural basado en tus puntuaciones.
+                  </p>
+                  <Button onClick={handleGenerateNlpFeedback}>
+                    Generar Feedback con IA
+                  </Button>
+                </div>
+              </Card>
+            )}
+            {nlpLoading && (
+              <Card>
+                <div className="flex items-center justify-center gap-3 py-6">
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-bg-hover border-t-brand-red" />
+                  <span className="text-sm text-text-secondary">Generando feedback con IA...</span>
+                </div>
+              </Card>
+            )}
+            {nlpError && !nlpLoading && (
+              <div className="flex flex-col gap-3">
+                <ErrorMessage
+                  message={nlpError}
+                  onRetry={handleGenerateNlpFeedback}
+                />
+              </div>
+            )}
+            {nlpFeedback && !nlpLoading && (
+              <Card className="border-brand-red/30 bg-brand-red/5">
+                <CardHeader
+                  title="Análisis IA"
+                  subtitle="Generado con procesamiento de lenguaje natural"
+                  action={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleGenerateNlpFeedback}
+                    >
+                      Regenerar
+                    </Button>
+                  }
+                />
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-primary">
+                  {nlpFeedback}
+                </p>
+              </Card>
+            )}
+          </section>
         </div>
       )}
 

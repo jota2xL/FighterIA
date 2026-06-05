@@ -6,6 +6,10 @@ from app.models.analysis import Analysis, AnalysisJointResult, AnalysisFeedback,
 from app.models.gamification import Badge, UserBadge
 from app.models.instructor import InstructorGroup, GroupMember
 
+# v2 modules
+from app.models.crm import Gym, Trainer, Lead
+from app.models.blockchain import Certificate
+
 __all__ = [
     "User",
     "Discipline", "Technique",
@@ -13,4 +17,7 @@ __all__ = [
     "Analysis", "AnalysisJointResult", "AnalysisFeedback", "AnalysisComment",
     "Badge", "UserBadge",
     "InstructorGroup", "GroupMember",
+    # v2
+    "Gym", "Trainer", "Lead",
+    "Certificate",
 ]
