@@ -7,6 +7,8 @@ import { useParams, Link } from "react-router-dom";
 import { useAnalysis } from "@/hooks/useAnalysis";
 import { analysisService } from "@/services/analysis.service";
 import { nlpService } from "@/services/nlp.service";
+import { blockchainService } from "@/services/blockchain.service";
+import type { Certificate } from "@/types/blockchain.types";
 import VideoPlayer from "@/components/analysis/VideoPlayer";
 import ScoreDisplay from "@/components/analysis/ScoreDisplay";
 import JointResultsTable from "@/components/analysis/JointResultsTable";
@@ -32,6 +34,11 @@ const AnalysisResultPage = () => {
   const [nlpLoading, setNlpLoading] = React.useState(false);
   const [nlpError, setNlpError] = React.useState<string | null>(null);
 
+  // Blockchain certificate state
+  const [cert, setCert] = React.useState<Certificate | null>(null);
+  const [certLoading, setCertLoading] = React.useState(false);
+  const [certError, setCertError] = React.useState<string | null>(null);
+
   const handleGenerateNlpFeedback = async () => {
     if (!data || data.status !== "completed") return;
     setNlpLoading(true);
@@ -48,6 +55,20 @@ const AnalysisResultPage = () => {
       setNlpError("Error al generar el feedback con IA. Inténtalo de nuevo.");
     } finally {
       setNlpLoading(false);
+    }
+  };
+
+  const handleGenerateCertificate = async () => {
+    setCertLoading(true);
+    setCertError(null);
+    try {
+      const result = await blockchainService.generateCertificate(analysisId);
+      setCert(result);
+      toast.success("Certificado generado correctamente");
+    } catch {
+      setCertError("Error al generar el certificado. Inténtalo de nuevo.");
+    } finally {
+      setCertLoading(false);
     }
   };
 
@@ -200,6 +221,67 @@ const AnalysisResultPage = () => {
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-primary">
                   {nlpFeedback}
                 </p>
+              </Card>
+            )}
+          </section>
+          {/* Blockchain Certificate */}
+          <section>
+            <h2 className="mb-3 font-display text-xl font-bold text-text-primary">
+              Certificado Blockchain
+            </h2>
+            {!cert && !certLoading && (
+              <Card>
+                <div className="flex flex-col items-center gap-4 py-4 text-center">
+                  <p className="text-sm text-text-secondary">
+                    Genera un certificado de integridad SHA-256 para este análisis. Podrás compartir el hash para verificación pública.
+                  </p>
+                  {certError && (
+                    <p className="text-xs text-brand-red-light">{certError}</p>
+                  )}
+                  <Button onClick={handleGenerateCertificate}>
+                    Generar Certificado Blockchain
+                  </Button>
+                </div>
+              </Card>
+            )}
+            {certLoading && (
+              <Card>
+                <div className="flex items-center justify-center gap-3 py-6">
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-bg-hover border-t-brand-red" />
+                  <span className="text-sm text-text-secondary">Generando certificado...</span>
+                </div>
+              </Card>
+            )}
+            {cert && !certLoading && (
+              <Card className="border-green-500/30 bg-green-500/5">
+                <CardHeader
+                  title="Certificado emitido"
+                  subtitle={`Verificaciones: ${cert.verified_count} · Emitido: ${new Date(cert.issued_at).toLocaleDateString("es-ES")}`}
+                />
+                <div className="flex flex-col gap-3">
+                  <div className="rounded-md bg-bg-tertiary px-3 py-2">
+                    <p className="break-all font-mono text-xs text-text-secondary">
+                      {cert.hash}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Link to={`/certificates/${cert.hash}`}>
+                      <Button variant="secondary" size="sm">
+                        Ver certificado público
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(cert.hash);
+                        toast.success("Hash copiado al portapapeles");
+                      }}
+                    >
+                      Copiar hash
+                    </Button>
+                  </div>
+                </div>
               </Card>
             )}
           </section>
